@@ -10,7 +10,6 @@ export class RedirectService {
   ) {}
 
   async getByShortened(shortCode: string): Promise<Shorten> {
-    console.log('service');
     const shortened = await this.shortenModel
       .findOneAndUpdate(
         { shortCode },
@@ -18,9 +17,20 @@ export class RedirectService {
         { new: true },
       )
       .exec();
+    console.log(shortened.toObject);
     if (!shortened) {
       throw new NotFoundException('Not Found');
     }
     return shortened.toObject();
+  }
+
+  async updateStats(shortCode: string): Promise<void> {
+    this.shortenModel
+      .updateOne({ shortCode }, { $inc: { redirects: 1 } }, { new: true })
+      .exec()
+      .catch((error) => {
+        // Handle errors here if needed, for example logging
+        console.error('Error updating stats:', error);
+      });
   }
 }
